@@ -23,3 +23,9 @@ LuCI插件：
   luci-app-parentcontrol 家长控制
 
   默认管理IP：192.168.1.252
+
+  若想安装luci-app-mosdns,登录openwrt后台，运行以下脚本
+
+  ```shell
+  sh -c "$(curl -ksS https://raw.githubusercontent.com/sbwml/luci-app-mosdns/v5/install.sh)"
+  ```
