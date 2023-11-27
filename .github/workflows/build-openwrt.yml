@@ -252,13 +252,6 @@ jobs:
         working-directory: ${{ env.OPENWRT_ROOT_PATH }}
         run: git checkout $(sed -n '/openwrt_tag\/branch/p' $GITHUB_WORKSPACE/config/${{ matrix.config }}/OpenWrt-K/compile.config | sed -e 's/.*=//')
 
-      - name: 复制cmzj_package
-        working-directory: ${{ env.WORKSPACE_ROOT_PATH }}
-        run: |
-          cp -r $CMZJ_PACKAGE_ROOT_PATH $OPENWRT_ROOT_PATH/package/cmzj_package
-          echo "cmzj_package" >> $LOG_PATH/cmzj_patch.log
-          ls $OPENWRT_ROOT_PATH/package/cmzj_package >> $LOG_PATH/cmzj_patch.log
-
       - name: 更新 feeds
         working-directory: ${{ env.OPENWRT_ROOT_PATH }}
         run: |
@@ -307,59 +300,6 @@ jobs:
           make defconfig
           ./scripts/diffconfig.sh
           ./scripts/diffconfig.sh >> $LOG_PATH/build1-diffconfig.log
-
-      - name: 添加内核补丁与所需内核配置
-        working-directory: ${{ env.WORKSPACE_ROOT_PATH }}
-        run: |
-          kernel_version="$(sed -n '/CONFIG_LINUX_/p' $OPENWRT_ROOT_PATH/.config | sed -e 's/CONFIG_LINUX_//' -e 's/=y//' -e 's/_/./g')"
-          echo kernel_version=$kernel_version
-          if [ "$(grep -c "^CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_DRV=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ] || [ "$(grep -c "^CONFIG_PACKAGE_kmod-shortcut-fe-drv=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ];then
-            sfe=true
-          elif [ "$(grep -c "^CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ] || [ "$(grep -c "^CONFIG_PACKAGE_kmod-shortcut-fe-cm=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ];then
-            sfe=true
-          elif [ "$(grep -c "^CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ] || [ "$(grep -c "^CONFIG_PACKAGE_kmod-fast-classifier=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ];then
-            sfe=true
-          elif [ "$(grep -c "^CONFIG_PACKAGE_kmod-shortcut-fe=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ];then
-            sfe=true
-          else
-            echo "::notice ::未检测到sfe设为编译进固件"
-            sfe=false
-          fi
-          if [ $sfe = true ];then
-            echo "::notice ::检测到sfe设为编译进固件，添加sfe所需补丁与附加内核配置"
-            cp -f $CMZJ_PATCH_ROOT_PATH/hack-$kernel_version/953-net-patch-linux-kernel-to-support-shortcut-fe.patch $OPENWRT_ROOT_PATH/target/linux/generic/hack-$kernel_version/
-            cp -f $CMZJ_PATCH_ROOT_PATH/pending-$kernel_version/613-netfilter_optional_tcp_window_check.patch $OPENWRT_ROOT_PATH/target/linux/generic/pending-$kernel_version/
-            echo "# CONFIG_SHORTCUT_FE is not set" >> $OPENWRT_ROOT_PATH/target/linux/generic/config-$kernel_version
-          fi
-          if [ $sfe = true ] || [ "$(grep -c "^CONFIG_PACKAGE_kmod-nft-fullcone=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ] || [ "$(grep -c "^CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_NFT_FULLCONE=y$" $OPENWRT_ROOT_PATH/.config)" -ne '0' ];then
-            if  [ "$kernel_version" = "6.1" ] || [ "$kernel_version" = "5.15" ]; then
-              echo "::notice ::添加sfe/fullcone所需补丁与附加内核配置"
-              cp $CMZJ_PATCH_ROOT_PATH/hack-$kernel_version/952-add-net-conntrack-events-support-multiple-registrant.patch $OPENWRT_ROOT_PATH/target/linux/generic/hack-$kernel_version
-            elif [ "$kernel_version" = "5.10" ] ; then
-              echo "::notice ::添加sfe/fullcone所需补丁与附加内核配置(5.10内核)"
-              cp $CMZJ_PATCH_ROOT_PATH/hack-$kernel_version/952-net-conntrack-events-support-multiple-registrant.patch  $OPENWRT_ROOT_PATH/target/linux/generic/hack-$kernel_version
-            else
-              echo "::error ::OpenWrt-K不支持为5.10以下内核打补丁，如需编译请删除此步骤与turboacc的相关的步骤并删除turboacc及其相关的拓展软件包(luci-app-turboacc、nft-fullcone、shortcut-fe)"
-              exit 1
-            fi
-            echo "# CONFIG_NF_CONNTRACK_CHAIN_EVENTS is not set" >> $OPENWRT_ROOT_PATH/target/linux/generic/config-$kernel_version
-          fi
-          echo "hack-$kernel_version"  >> $LOG_PATH/cmzj_patch.log
-          ls $OPENWRT_ROOT_PATH/target/linux/generic/hack-$kernel_version >> $LOG_PATH/cmzj_patch.log
-
-      - name: 为openwrt-22.03/v22.03.*升级dnsmasq与libubox
-        working-directory: ${{ env.OPENWRT_ROOT_PATH }}
-        run: |
-          openwrt_tag_branch=$(sed -n '/openwrt_tag\/branch/p' $GITHUB_WORKSPACE/config/${{ matrix.config }}/OpenWrt-K/compile.config | sed -e 's/.*=//')
-          if [ "$openwrt_tag_branch" = "openwrt-22.03" ] || [[ "$openwrt_tag_branch" =~ ^v22.03.* ]] ; then
-            echo "::notice ::检测到openwrt-22.03分支/v22.03.*版本升级dnsmasq与libubox"
-            rm -rf $OPENWRT_ROOT_PATH/package/{network/services/dnsmasq,libs/libubox}
-            mkdir -p $OPENWRT_ROOT_PATH/package/{network/services/dnsmasq,libs/libubox}
-            cp -RT $CMZJ_PATCH_ROOT_PATH/libubox $OPENWRT_ROOT_PATH/package/libs/libubox
-            cp -RT $CMZJ_PATCH_ROOT_PATH/dnsmasq $OPENWRT_ROOT_PATH/package/network/services/dnsmasq
-          else
-            echo "::notice ::检测到非openwrt-22.03分支/v22.03.*版本,跳过升级dnsmasq与libubox。"
-          fi
 
       - name: 检查软件包依赖
         working-directory: ${{ env.OPENWRT_ROOT_PATH }}
