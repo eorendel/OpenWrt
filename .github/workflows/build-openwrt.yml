@@ -197,46 +197,7 @@ jobs:
           done
           [[ -d $TMPDIR ]] && rm -rf "$TMPDIR"
 
-      - name: 复制到cmzj_patch
-        run: |
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch $CMZJ_PATCH_ROOT_PATH/hack-5.10/
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch $CMZJ_PATCH_ROOT_PATH/hack-5.10/
-          cp $DOWNLOAD_ROOT_PATH/patch/turboacc/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch $CMZJ_PATCH_ROOT_PATH/hack-5.15/
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/hack-5.15/953-net-patch-linux-kernel-to-support-shortcut-fe.patch $CMZJ_PATCH_ROOT_PATH/hack-5.15/
-          cp $DOWNLOAD_ROOT_PATH/patch/turboacc/hack-6.1/952-add-net-conntrack-events-support-multiple-registrant.patch $CMZJ_PATCH_ROOT_PATH/hack-6.1/
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/hack-6.1/953-net-patch-linux-kernel-to-support-shortcut-fe.patch $CMZJ_PATCH_ROOT_PATH/hack-6.1/
-          cp -RT $DOWNLOAD_ROOT_PATH/patch/turboacc/firewall4-$(grep -o 'FIREWALL4_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)/firewall4 $CMZJ_PATCH_ROOT_PATH/firewall4
-          cp -RT $DOWNLOAD_ROOT_PATH/patch/turboacc/libnftnl-$(grep -o 'LIBNFTNL_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)/libnftnl $CMZJ_PATCH_ROOT_PATH/libnftnl
-          cp -RT $DOWNLOAD_ROOT_PATH/patch/turboacc/nftables-$(grep -o 'NFTABLES_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)/nftables $CMZJ_PATCH_ROOT_PATH/nftables
-          cp -RT $DOWNLOAD_ROOT_PATH/openwrt/package/network/services/dnsmasq $CMZJ_PATCH_ROOT_PATH/dnsmasq
-          cp -RT $DOWNLOAD_ROOT_PATH/openwrt/package/libs/libubox $CMZJ_PATCH_ROOT_PATH/libubox
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/pending-5.10/613-netfilter_optional_tcp_window_check.patch $CMZJ_PATCH_ROOT_PATH/pending-5.10/
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/pending-5.15/613-netfilter_optional_tcp_window_check.patch $CMZJ_PATCH_ROOT_PATH/pending-5.15/
-          cp $DOWNLOAD_ROOT_PATH/patch/lede/target/linux/generic/pending-6.1/613-netfilter_optional_tcp_window_check.patch $CMZJ_PATCH_ROOT_PATH/pending-6.1/
-          cp -RT $DOWNLOAD_ROOT_PATH/patch/immortalwrt-packages/admin/netdata $CMZJ_PATCH_ROOT_PATH/netdata
-          echo "FIREWALL4_VERSION=firewall4-$(grep -o 'FIREWALL4_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)"
-          echo "NFTABLES_VERSION=libnftnl-$(grep -o 'NFTABLES_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)"
-          echo "LIBNFTNL_VERSION=nftables-$(grep -o 'LIBNFTNL_VERSION=.*' $DOWNLOAD_ROOT_PATH/patch/turboacc/version | cut -d '=' -f 2)"
-
-      - name: 压缩
-        run: |
-          cd $CMZJ_PACKAGE_ROOT_PATH
-          tar cvpzf $GITHUB_WORKSPACE/cmzj_package.tgz *
-          cd $CMZJ_PATCH_ROOT_PATH
-          tar cvpzf $GITHUB_WORKSPACE/cmzj_patch.tgz *
-
-      - name: 上传 cmzj_package
-        uses: actions/upload-artifact@v3
-        with:
-          name: cmzj_package-${{ matrix.config }}
-          path: cmzj_package.tgz
-
-      - name: 上传 cmzj_patch
-        uses: actions/upload-artifact@v3
-        with:
-          name: cmzj_patch-${{ matrix.config }}
-          path: cmzj_patch.tgz
-
+     
   build1:
     runs-on: ubuntu-22.04
     needs: [planning,prepare]
@@ -276,28 +237,7 @@ jobs:
           echo "LOG_PATH=$LOG_PATH" >> $GITHUB_ENV
           cat $GITHUB_ENV >> $GITHUB_WORKSPACE/build1_ENV
 
-      - name: 下载cmzj_package
-        uses: actions/download-artifact@v3
-        with:
-          name: cmzj_package-${{ matrix.config }}
-
-      - name: 下载cmzj_patch
-        uses: actions/download-artifact@v3
-        with:
-          name: cmzj_patch-${{ matrix.config }}
-
-      - name: 解压
-        run: |
-          tar xvpfz $GITHUB_WORKSPACE/cmzj_package.tgz -C $CMZJ_PACKAGE_ROOT_PATH
-          tar xvpfz $GITHUB_WORKSPACE/cmzj_patch.tgz -C $CMZJ_PATCH_ROOT_PATH
-          echo "cmzj_package" >> $LOG_PATH/cmzj_package.log
-          ls $CMZJ_PACKAGE_ROOT_PATH >> $LOG_PATH/cmzj_package.log
-          echo "cmzj_patch"  >> $LOG_PATH/cmzj_patch.log
-          ls $CMZJ_PATCH_ROOT_PATH  >> $LOG_PATH/cmzj_patch.log
-          echo "cmzj_package-permissions" >> $LOG_PATH/cmzj_package.log
-          ls -l $CMZJ_PACKAGE_ROOT_PATH/** >> $LOG_PATH/cmzj_package.log
-          echo "cmzj_patch-permissions" >> $LOG_PATH/cmzj_patch.log
-          ls -l $CMZJ_PATCH_ROOT_PATH/**  >> $LOG_PATH/cmzj_patch.log
+     
 
       - name: 克隆源代码
         working-directory:  ${{ env.WORKSPACE_ROOT_PATH }}
