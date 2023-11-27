@@ -3,7 +3,7 @@
  来自https://github.com/chenmozhijin/OpenWrt-K
 
 ## 固件介绍
-基于OpenWrt官方源码编译，适用于软路由，删除了USB、网卡等驱动。
+
 已内置以下软件包：
 
 LuCI插件：  
