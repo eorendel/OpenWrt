@@ -312,6 +312,9 @@ jobs:
           export OPENWRT_ROOT_PATH="$(pwd)"
           echo "OPENWRT_ROOT_PATH=$OPENWRT_ROOT_PATH" >> $GITHUB_ENV
           cat $GITHUB_ENV >> $GITHUB_WORKSPACE/build1_ENV
+          pushd feeds/packages/lang
+          rm -rf golang && svn co https://github.com/openwrt/packages/trunk/lang/golang
+          popd
 
       - name: 切换标签/分支
         working-directory: ${{ env.OPENWRT_ROOT_PATH }}
