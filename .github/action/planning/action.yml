@@ -49,6 +49,9 @@ runs:
               elif [ "$(grep -c "^zonename=" $GITHUB_WORKSPACE/config/$i/OpenWrt-K/openwrtext.config)" -eq 0 ];then
                 echo "::error ::无法获取$i配置中openwrt的时区区域名称(在OpenWrt-K/openwrtext.config中),请尝试使用新版OpenWrt-k配置构建工具"
                 exit 1
+              elif [ "$(grep -c "^golang_version=" $GITHUB_WORKSPACE/config/$i/OpenWrt-K/openwrtext.config)" -eq 0 ];then
+                echo "::error ::无法获取$i配置中openwrt的golang版本配置(在OpenWrt-K/openwrtext.config中),请尝试使用新版OpenWrt-k配置构建工具"
+                exit 1
               fi
               if [ -z "$(sed -n '/^kmod_compile_exclude_list=/p' $GITHUB_WORKSPACE/config/$i/OpenWrt-K/compile.config | sed -e "s/=[my]\([,]\{0,1\}\)/\1/g" -e 's/.*=//')" ];then
                 echo "::warning ::无法获取$i配置中的kmod编译排除列表，这很有可能导致编译失败。"
@@ -85,7 +88,7 @@ runs:
               subtarget=$(sed -n '/^CONFIG_TARGET_SUBTARGET/p' $GITHUB_WORKSPACE/openwrt/.config | sed -e 's/CONFIG_TARGET_SUBTARGET\=\"//' -e 's/\"//')
               targetarchpackages=$(sed -n '/^CONFIG_TARGET_ARCH_PACKAGES/p' $GITHUB_WORKSPACE/openwrt/.config | sed -e 's/CONFIG_TARGET_ARCH_PACKAGES\=\"//' -e 's/\"//')
               export parameter=$parameter\{\'config\':\'$i\',\'target\':\'$target\',\'subtarget\':\'$subtarget\',\'targetarchpackages\':\'$targetarchpackages\'\},
-              echo "::notice ::配置$i的Release名: OpenWrt_V$starttime ($target-$subtarget)-[$OPENWRT_TAG_BRANCH]"
+              echo "::notice ::配置$i的Release名: OpenWrt-K_V$starttime ($target-$subtarget)-[$OPENWRT_TAG_BRANCH]"
               echo "::notice ::配置$i编译的架构为$target,子架构为$subtarget,软件包目标架构为:$targetarchpackages"
               echo "::notice ::配置$i编译的标签/分支为$OPENWRT_TAG_BRANCH"
               echo "v$starttime($target-$subtarget)-($OPENWRT_TAG_BRANCH)" >> $TMPFILE
