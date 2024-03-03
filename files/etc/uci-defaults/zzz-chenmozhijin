@@ -12,7 +12,7 @@ uci batch << EOI
 set AdGuardHome.AdGuardHome.enabled='1'
 set AdGuardHome.AdGuardHome.httpport='3000'
 set AdGuardHome.AdGuardHome.binpath='/usr/bin/AdGuardHome/AdGuardHome'
-set AdGuardHome.AdGuardHome.waitonboot='1'
+set AdGuardHome.AdGuardHome.waitonboot='0'
 set AdGuardHome.AdGuardHome.redirect='dnsmasq-upstream'
 set AdGuardHome.AdGuardHome.ucitracktest='1'
 set AdGuardHome.AdGuardHome.old_redirect='dnsmasq-upstream'
