@@ -16,6 +16,7 @@ LuCI插件：
   [luci-app-openclash](https://github.com/vernesong/OpenClash):可运行在 OpenWrt 上的 Clash 客户端  
   [luci-app-passwall](https://github.com/xiaorouji/openwrt-passwall)：passwall  
   luci-app-ipsec-server：ipsecVPN服务器端
+  
   luci-app-ttyd：ttyd 终端  
   luci-app-vlmcsd：KMS 服务器  
   [luci-app-parentcontrol](https://github.com/sirpdboy/luci-app-parentcontrol)  ：家长控制
